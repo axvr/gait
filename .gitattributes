@@ -1,0 +1,4 @@
+# See: <https://ascribe.axvr.uk>
+*  tab-stop=2  expand-tab  eof=lf  final-newline  trim-trailing-whitespace
+*.mach  linguist-language=Clojure
+*.nc    linguist-language=Clojure

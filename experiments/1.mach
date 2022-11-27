@@ -1,0 +1,268 @@
+;; Machina.  An interactive, lispy HDL.
+;; Inspired by: Clojure, Arc, Bel, Smalltalk, Verilog.
+;; 
+;; File ext: .mach
+;; Syntax:   Clojure (currently...)
+
+
+;; TODO: how to handle multiple inputs and outputs?
+
+
+;; (defmac let ()
+;;   `())
+
+;; (defmod and (:in a b) (:out y)
+;;   (if (= a 1)
+;;     (if (= b 1)
+;;       (set! y 1)))
+;;   (set! y 0))
+
+
+
+(mod and
+  (:in a b)
+  (:out y)
+  (y (= 1 a b)))
+
+(mod and
+  (:in (a :bit)
+       (b :bit))
+  (:out y)
+  (y (= true a b)))
+
+(mod and
+  (:in (bit a)
+       (bit b))
+  (:out (bit y))
+  (y (= true a b)))
+
+;; (mod and
+;;   (:in & a)
+;;   (:out y)
+;;   (y `(= 1 ,@a)))
+
+
+(mod not
+  (:in a)
+  (:out y)
+  (y (= a 0)))
+
+
+(mod nand
+  (:in a b)
+  (:out y)
+  (y (not (and a b))))
+;; TODO: keyword arguments?
+
+
+(mod or
+  (:in a b)
+  (:out y)
+  (y (nand (nand a a)
+           (nand b b))))
+
+
+(mod nor
+  (:in a b)
+  (:out y)
+  (y (not (or a b))))
+
+
+;; (mod xor
+;;   (:in a b)
+;;   (:out y)
+;;   (y (nand (nand )
+;;            (nand ))))
+
+
+;; TODO: buses (bus 10)
+
+(bus address (:bits 12))
+(bus data (:bits 8))
+
+(mod ram
+  "A RAM module."
+  (:in address clock data-in write?)
+  (:out data-out)
+  (let ()))
+
+
+
+
+;; Values are amb by default?
+
+(mod sr-nor-latch
+  (:in r (s true))
+  (:out q Q)
+  (let (a (state)
+        b (state))
+    (q (b (nor r a)))
+    (Q (a (nor s b)))))
+
+
+;; (mod d-flipflop
+;;   (:in d clock)
+;;   (:out q)
+;;   (let (s (state false))  ;; state takes optional default value.
+;;     ;; clock is a function which executes argument on condition.
+;;     (clock :pos-edge? (q (s d)))))
+
+(mod d-flipflop
+  {:in d clock}
+  {:out q}
+  (let (s (state false))  ;; state takes optional default value.
+    ;; clock is a function which executes argument on condition.
+    (clock :pos-edge (q (s d)))))
+
+
+;; If no outputs are modified, keep previous outputs.
+(mod d-flipflop
+  {:in d clock}
+  {:out q}
+  (when clock (q d)))
+
+
+;; TODO: upon state change, reload module?  (but keep values inside state objects?)
+
+
+;; TODO: load default values from hex files?
+
+
+;; TODO: inout lines (use same name in in and out)
+
+
+;; Would make a lot of use of Clojure's refs.  All outs are refs.
+
+
+
+(mod half-adder
+  "1-bit half adder."
+  {:in a b}
+  {:out s c}
+  (s (xor a b))
+  (c (and a b)))
+
+(mod full-adder
+  "1-bit full adder."
+  {:in a b (c-in false)}
+  {:out s c-out}
+  (let ((:s s1 :c c1)
+        (half-adder a b)
+        (:s s2 :c c2)
+        (half-adder s1 c-in))
+    (s s2)
+    (c-out (or c1 c2))))
+
+(mod 8-bit-adder
+  "8-bit full-adder."
+  {:in (a [8]) (b [8])}
+  {:out (s [8]) c}
+  ,,,)
+
+
+
+
+
+
+
+
+
+
+
+;; Inverter
+(mod inverter {:i a} {:o y}
+  (y (not a)))
+
+
+;; Buffer
+(mod buffer {:i a} {:o y}
+  (y a))
+
+
+;; TODO Transmission gate
+(mod)
+
+
+;; Tri-state buffer
+(mod tri-state-buffer {:i a c} {:o y}
+  (when c (y a)))
+
+
+;; Basic gates
+(mod basic-gates
+  {:i a b}
+  {:o y-or y-and y-xor y-nor y-nand y-xnor}
+  (y-or (or a b))
+  (y-and (and a b))
+  (y-xor (xor a b))
+  (y-nor (nor a b))     ; (not (or a b))
+  (y-nand (nand a b))   ; (not (and a b))
+  (y-xnor (xnor a b)))  ; (not (xor a b))
+
+
+(mod sr-flip-flop
+  {:i [clk set rst]
+   :o [q q']}
+  (when clk
+    (cond
+      (and set rst) (q (q' _))
+      set [(q' (not set))
+           (q  set)]
+      rst [(q' 1)
+           (q  0)])))
+
+;; Short-hand use of `'` at end of output will auto-set it to the inverse?
+(mod sr-latch+clock
+  {:i [clk set rst]
+   :o [q q']}
+  (when clk
+    (q (cond (and set rst) _
+             set           set
+             rst           0))))
+
+(mod sr-latch
+  {:i [s r]
+   :o [q q']} 
+  (q (cond (and r s) _
+           s         1
+           r         0)))
+
+(mod sr-latch+clock
+  {:i [clk set rst]
+   :o [q q']}
+  (when clk
+    ; Will/should using sr-latch like this be able to maintain state?
+    ; Try to, I think this would be a good idea.
+    (q (sr-latch :s set :r rst))))
+
+(mod sr-latch+clock
+  {:i [[clk _] [set _] [rst _]]
+   :o [[q _] [q' _]]}
+  (when clk
+    (bind [{:q q1 :q' q1'} (sr-latch :s set :r rst)]
+      (q q1)
+      (q' q1'))))
+
+;; Should modules be able to use their outputs?
+;; Could cause infinite re-sync of the module if it responds to them changing.
+;; YES BUT, they don't respond to their outputs changing to avoid paradoxes.
+;; So while this is possible, it is left as undefined behaviour!
+(mod sr-nor-latch
+  {:i [s r]
+   :o [q q']}
+  (q  (nor r q'))
+  (q' (nor s q)))
+
+
+;; 1Ghz clock  (uses ISO 8601 durations.)
+(new global-clock (clock "PT0.000000001S"))
+
+(sr-flip-flop :clk global-clock :rst 0 :sr 0)
+
+
+;; Modules inside modules (private modules).
+
+
+;; Will not work?
+;; (mod posedge? {:i a} {:o b}
+;;   (when a (b a)))

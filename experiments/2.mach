@@ -1,0 +1,351 @@
+;; Machina v0.1 - An interactive, lispy HDL.
+;; Inspired by: Clojure, Arc, Bel, Smalltalk, SystemVerilog, Bass.
+;;
+;; File ext: mach
+;; Syntax:   Clojure DSL
+
+
+;; Would make a lot of use of Clojure's refs.  All outs are refs.
+
+
+;; Short-hand use of `'` at end of output will auto-set it to the inverse?
+(mod sr-latch+clock
+     {:i [clk set rst]
+      :o [q q']}
+     (when clk
+       (q (cond (and set rst) ?
+                set           set
+                rst           0))))
+
+;; Should modules be able to use their outputs?
+;; Could cause infinite re-sync of the module if it responds to them changing.
+;; YES BUT, they don't respond to their outputs changing to avoid paradoxes.
+;; So while this is possible, it is left as undefined behaviour!
+(mod sr-nor-latch
+     {:i [s r]
+      :o [q q']}
+     (q  (nor r q'))
+     (q' (nor s q)))
+
+
+;; 1Ghz clock  (uses ISO 8601 durations.)
+(def global-clock (clock "PT0.000000001S"))
+
+
+;; Modules inside modules (private modules).
+
+
+;; TODO: namespaces.
+
+Primitives (6)
+--------------
+nand       ; (nand 1 0) => 1   (nand :a 1 :b 0) => :x 1
+mod        ; define a new module
+apply      ; can apply be avoided?
+do
+bind       ; (bind [{:q q1 :q' q1'} (sr-latch :s s :r r)] (q q1) (q' q1'))
+           ; destructure and bind outputs to local vars.
+def        ; (def my-nand nand) - creates a shared instance of a module that
+           ;                      can be used by multiple modules.
+           ;                      Also binds names to values.
+
+true       ; On
+false      ; Off
+nil        ; Unknown state.  (Falsy)
+
+{}  ; Structs
+[]  ; Vectors
+
+
+Simulator primitives
+--------------------
+clock      ; (clock "PT0.000000001S")
+log        ; (log "Something happened")  - used by the simulator to report useful information.
+err        ; (err "Something bad happened")  - used by the simulator to flag something unexpected.
+reset!     ; When given a global module reference (created with def), it resets it.
+pause!
+assert
+
+
+Optimised composites
+--------------------
+and
+not
+or
+xor
+nor
+xnor
+if
+when
+cond
+case
++
+-
+/
+*
+<
+>
+<=
+>=
+=
+
+;; TODO: include verification mechanisms like in SystemVerilog.
+
+;; TODO: looping constructs?  Are they needed or can it be implemented with nand + mod?
+
+
+;; TODO: macros/f-exprs?
+
+
+;; Whenever inputs change the module body is executed and new outputs are
+;; calculated.
+
+;; Modules that don't refer to global modules can be synchronised concurrently.
+
+;; mod vs. modl
+;; def vs. new vs. inst
+
+
+;; Currently Machina supports both structural and behavioural design.
+;; This is a side-effect of it's high-level abstraction concepts.
+
+
+;; TODO: mod can just be a standard Clojure function converting it into a map.
+;; TODO: need a custom pretty-printer.
+
+
+
+(mod sr-latch
+     {:i [s r]
+      :o [q q']}
+     (q (cond (and r s) ?
+              s         1
+              r         0)))
+
+(mod sr-latch+clock
+     {:i [clk set rst]
+      :o [q q']}
+     (when clk
+       (q (sr-latch :s set :r rst))))
+
+
+
+;; (module sr-latch
+;;   {:in  [set rst]
+;;    :out [q q']}
+;;   (q (cond (and rst set) ?
+;;            set           1
+;;            rst           0)))
+
+
+(mod not
+     "Logical NOT - negation"
+     {:i [a] :o [q]}
+     (q (nand a a)))
+
+;; (mod ! not)
+;; (mod ¬ not)
+;; (mod N not)
+
+;; Possible way to define multiple names?  Probably unnecessary and complecting.
+;; (mod [not ! ¬ N]
+;;   "Logical NOT - Negation"
+;;   {:i [p] :o [q]}
+;;   (p (nand p p)))
+
+(mod and
+     "Logical AND (short circuiting)"
+     {:i [a b] :o [q]}
+     (q (not (nand a b))))
+
+;; (mod ∧ and)
+;; (mod K mod)
+
+(mod or
+     "Logical inclusive OR (short circuiting)"
+     {:i [a b] :o [q]}
+     (q (nand (not a) (not b))))
+
+;; (mod ∨ or)
+;; (mod A or)
+
+(mod nor
+     "Logical NOR (short circuiting)"
+     {:i [a b] :o [q]}
+     (q (not (or a b))))
+
+;; (mod X nor)
+
+(mod xor
+     "Logical XOR (short circuiting)"
+     {:i [a b] :o [q]}
+     (bind [nand-ab (nand a b)]
+           (q (nand (nand b nand-ab) (nand a nand-ab)))))
+
+;; (mod ⊻ xor)
+;; (mod J xor)
+
+(mod xnor
+     "Logical XNOR - Logical biconditional"
+     {:i [a b] :o [q]}
+     (q (not (xor a b))))
+
+;; (mod E xnor)
+
+(mod if
+     {:i [cond then else]
+      :o [result]}
+     (result (or (and cond then)
+                 (and (not cond) else))))
+
+(mod when
+     {:i [cond & body]
+      :o [result]}
+     (result (if cond (do body) ?)))
+
+(mod cond
+     {:i [case then & cont]
+      :o [result]}
+     (result
+      (if case
+        then
+        (if cont
+          (apply cond cont)  ; TODO: any way of making this work without apply?
+          ?))))
+
+;; TODO: is it possible to make these work with additional inputs?
+;; Maybe use "apply" and leave it up to the optimiser to figure it out?
+
+;; FIXME: this probably won't work.  Maybe I need "case" as a primitive after all.
+(mod =
+     {:i [a b]
+      :o [q]}
+     (q (and a b)))
+
+(mod half-adder
+     {:i [a b]
+      :o [s c]}
+     (s (xor a b))
+     (c (and a b)))
+
+(mod full-adder
+     {:i [a b c-in]
+      :o [s c-out]}
+     (bind [{:s s1 :c c1} (half-adder a b)
+            {:s s2 :c c2} (half-adder s1 c-in)]
+           (s s2)
+           (c-out (or c1 c2))))
+
+;; Register/buffer (can be used to maintain internal state, but not recommended in most cases)
+;; Unlike Verilog, they are not primitive constructs.
+(mod buf {:i i :o o} (o i))
+
+;; TODO: buses and vectors.
+0xAA
+x:AA
+b:01010101
+
+(mod get
+     "Get specific index of a vector."
+     {:i [i idx] :o [o]}
+     (xor))
+
+(mod)
+
+;; Bit shift registers.
+
+
+;; TODO: protocols/interfaces.
+;; (proto do-something
+;;   {:i []
+;;    :o []})
+
+
+;; TODO: structs or similar?
+
+;; TODO: enums, names for data?
+(def red 0x0)
+(def green 0x1)
+(def blue 0x2)
+(def cyan 0x3)
+(def magenta 0x4)
+(def yellow 0x5)
+
+(proto colour-accepting-thing
+       {:in [colour #{red green blue cyan magenta yellow}]})
+
+(vec :width 8 :init 0x1)
+[1 1 1 1 1 1 1 1]
+0xF
+
+0x0F != 0xF ???
+
+
+;; con - connects repeating instances of a module connecting inputs
+;;       to outputs, used for passing in vectors?
+
+(mod adder-8b
+     {:i [[a 8] [b 8]]
+      :o [[s 8] [c 1]]}
+     (def adder (con :mod full-adder :* 8 :with {:c-out :c-in}))
+     (bind [{:s s1 :c-out c1} (adder :a a :b b :c-in 0)]
+           (s s1)
+           (c c1)))
+
+(mod full-adder
+     {:i [a b c-in]
+      :o [s c-out]
+      :v {c-out c-in}}  ; Tells Machina how to connect multiples of this for vectors.  (v / vec / c / con)
+     (bind [{:s s1 :c c1} (half-adder a b)
+            {:s s2 :c c2} (half-adder s1 c-in)]
+           (s s2)
+           (c-out (or c1 c2))))
+
+(full-adder :a 0x1 :b 0x2 :c-in false)  ; => {:s 0x3 :c-out false]}
+
+(full-adder 0x1 0x3)
+;; => {:s 0x1, c-out true}
+
+(full-adder {:a 0x1, :b 0x3, :mach/con 4})  ; Force to a 4-bit adder.
+;; => {:s 0x4, c-out false, :mach/result :s}
+
+
+(mod + {:i [a b] :o [s]}
+     (full-adder :a a :b b :c-in 0))
+
+(+ 0xA 0x3)  ; => 0xD
+
+;; 1, 0, ? are too confusing when adding number/vector support...
+;; Just use Clojure's true, false, nil
+
+;; Switch between little endian and big endian for numbers?
+
+;; TODO: variadic modules?  Extension of con?
+
+
+
+(mod adder-subtractor*
+     {:in  [a b c-in sub?]
+      :out [s c-out]
+      :con {c-out c-in}}
+     (bind [{:s s1 :c-out c1}
+            (full-adder
+             :a a
+             :b (xor b sub?)
+             :c-in c-in)]
+           (s s1)
+           (c-out c1)))
+
+(mod adder-subtractor
+     {:in  [a b sub?]
+      :out [s c-out]}
+     (bind [{:s s1 :c-out c1}
+            (adder-subtractor* :a a :b b :c-in sub? :sub? sub?)]
+           (s s1)
+           (c-out c1)))
+
+(adder-subtractor :a 0x4 :b 0x1 :sub? false)
+;; => {:s 0x4, :c-out true}
+
+(adder-subtractor :a 0x4 :b 0x1 :sub? true)
+;; => {:s 0x3, :c-out false}
