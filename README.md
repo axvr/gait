@@ -1,13 +1,13 @@
-# Machina
+# Gait
 
-An experimental, interactive Lispy + Object-Oriented [Hardware Description Language (HDL)][HDL].
+An experimental, interactive, Lisp-based, object-oriented [hardware description language (HDL)][HDL].
 
 > **Warning**<br>
-> Machina is **not** suitable for real-world use, please do not use it for anything important.
+> Gait is **not** suitable for real-world use, please do not use it for anything important.
 
-This is just a **very** work-in-progress prototype for Machina.  Currently it is integrated into Clojure, which may change in the future.
+This is a **very** work-in-progress prototype of Gait.  Currently it is a Clojure DSL for quick prototyping, however, this will likely change in the future.
 
-Machina is influenced by many languages including: [Clojure][], [Bel][], [Smalltalk][], [SystemVerilog][] and [Bass][].
+Gait is influenced by many languages including: [Clojure][], [Bel][], [Smalltalk][], [SystemVerilog][] and [Bass][].
 
 [Clojure]: https://clojure.org
 [Bel]: http://www.paulgraham.com/bel.html
@@ -21,7 +21,8 @@ Machina is influenced by many languages including: [Clojure][], [Bel][], [Smallt
 (Very much subject to change.)
 
 ```clojure
-(ns mach.example)
+;; File can either be `gait.example.gt` or `gait/example.gt`.
+(coll gait.example)
 
 (mod not
   "Logical NOT - negation"
@@ -71,14 +72,14 @@ Machina is influenced by many languages including: [Clojure][], [Bel][], [Smallt
 
 (full-adder
   ;; con-max = 4, making it a 4-bit adder.
-  ^{:mach/max 4}
+  ^{:gait/max 4}
   {:a 0x1, :b 0x3})
 ;; => {:s 0x4, :c-out false}
 ```
 
-The file extension for Machina code is `.mach`.
+The file extension for Gait code is `.gt`.
 
-(For the history of Machina, you can find notes and experiments under "[NANDC](https://github.com/axvr/codedump/tree/master/2019/nandc)".)
+(For the history of Gait, you can find notes and experiments under "[NANDC](https://github.com/axvr/codedump/tree/master/2019/nandc)".)
 
 [HDL]: https://en.wikipedia.org/wiki/Hardware_description_language
 
@@ -87,4 +88,4 @@ The file extension for Machina code is `.mach`.
 
 Copyright © [Alex Vear](https://www.alexvear.com).
 
-Machina is available under the terms of the [Mozilla Public License v2.0](https://www.mozilla.org/en-US/MPL/2.0/).  A full copy of the MPL 2.0 can be found in the accompanying [`LICENCE`](/LICENCE) file.
+Gait is available under the terms of the [Mozilla Public License v2.0](https://www.mozilla.org/en-US/MPL/2.0/).  A full copy of the MPL 2.0 can be found in the accompanying [`LICENCE`](/LICENCE) file.

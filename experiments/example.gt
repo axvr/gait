@@ -1,4 +1,4 @@
-(ns mach.example)
+(ns gait.example)
 
 (mod not
   "Logical NOT - negation"
@@ -48,6 +48,6 @@
 
 (full-adder
   ;; con-max = 4, making it a 4-bit adder.
-  ^{:mach/max 4}
+  ^{:gait/max 4}
   {:a 0x1, :b 0x3})
 ;; => {:s 0x4, :c-out false}

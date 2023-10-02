@@ -1,7 +1,7 @@
 ;; Machina v0.1 - An interactive, lispy HDL.
 ;; Inspired by: Clojure, Arc, Bel, Smalltalk, SystemVerilog, Bass.
 ;;
-;; File ext: mach
+;; File ext: gt
 ;; Syntax:   Clojure DSL
 
 

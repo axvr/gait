@@ -1,7 +1,7 @@
 ;; Machina.  An interactive, lispy HDL.
 ;; Inspired by: Clojure, Arc, Bel, Smalltalk, Verilog.
-;; 
-;; File ext: .mach
+;;
+;; File ext: gt
 ;; Syntax:   Clojure (currently...)
 
 
@@ -222,7 +222,7 @@
 
 (mod sr-latch
   {:i [s r]
-   :o [q q']} 
+   :o [q q']}
   (q (cond (and r s) _
            s         1
            r         0)))
