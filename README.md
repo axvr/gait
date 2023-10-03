@@ -2,23 +2,22 @@
 
 An experimental, interactive, Lisp-based, object-oriented [hardware description language (HDL)][HDL].
 
-> **Warning**<br>
-> Gait is **not** suitable for real-world use, please do not use it for anything important.
+This is a **very** work-in-progress prototype.  Currently it is just a Clojure DSL for quick prototyping, which will likely change in the future.
 
-This is a **very** work-in-progress prototype of Gait.  Currently it is a Clojure DSL for quick prototyping, however, this will likely change in the future.
-
-Gait is influenced by many languages including: [Clojure][], [Bel][], [Smalltalk][], [SystemVerilog][] and [Bass][].
+Gait is influenced by many languages including: [Clojure][], [Bel][], [Smalltalk][], and [SystemVerilog][].
 
 [Clojure]: https://clojure.org
 [Bel]: http://www.paulgraham.com/bel.html
 [Smalltalk]: https://en.wikipedia.org/wiki/Smalltalk
 [SystemVerilog]: https://en.wikipedia.org/wiki/SystemVerilog
-[Bass]: https://bass-lang.org
 
 
 ## Example
 
-(Very much subject to change.)
+> **Note**<br>
+> Subject to change.
+
+The file extension for Gait code is `.gt`.
 
 ```clojure
 ;; File can either be `gait.example.gt` or `gait/example.gt`.
@@ -77,11 +76,27 @@ Gait is influenced by many languages including: [Clojure][], [Bel][], [Smalltalk
 ;; => {:s 0x4, :c-out false}
 ```
 
-The file extension for Gait code is `.gt`.
-
-(For the history of Gait, you can find notes and experiments under "[NANDC](https://github.com/axvr/codedump/tree/master/2019/nandc)".)
-
 [HDL]: https://en.wikipedia.org/wiki/Hardware_description_language
+
+
+## Road map
+
+- [ ] Initial language reference
+- [ ] Initial simulator
+- [ ] Collections (namespaces)
+- [ ] Standard library
+- [ ] Libraries (+ package management?)
+- [ ] Optimiser
+- [ ] Netlist generation
+- [ ] Load onto an FPGA
+- [ ] IDE
+
+
+### Out of scope
+
+- Compile to Verilog, SystemVerilog or VHDL.  (Use Clash instead.)
+- Backwards compatibility with other systems and tools.
+- Support for a wide range of FPGAs.
 
 
 ## Legal
