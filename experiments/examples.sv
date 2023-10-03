@@ -22,7 +22,6 @@ module mux (
 endmodule
 
 
-
 // Behavioural design.
 // Hard to visualise circuit.
 // Easy to understand, more like a PL.
@@ -43,26 +42,26 @@ module mux (
 endmodule
 
 
+// Gait
 
-;; Machina (currently)
+// (mod mux
+//   {:i [a b s]
+//    :o [o]}
+//   (o (or (and s a)
+//          (and (not s) b))))
 
-(mod mux
-  {:i [a b s]
-   :o [o]}
-  (o (or (and s a)
-         (and (not s) b))))
+// (mod mux
+//   {:i [a b s]
+//    :o [o]}
+//   (o (if s a b)))
 
-(mod mux
-  {:i [a b s]
-   :o [o]}
-  (o (if s a b)))
+// Gait will be able to tell that this is just "if" and will provide
+// a relevant refactor option.  In fact, it will encourage just removing this
+// "mux" module.
 
-;; Machina will be able to tell that this is just "if" and will provide a
-;; relevant refactor option.  In fact, it will encourage just removing this "mux" module.
-
-;; Definition of `if`
-(mod if
-  {:i [cond then else]
-   :o [result]}
-  (result (or (and cond then)
-              (and (not cond) else))))
+// Definition of `if`
+// (mod if
+//   {:i [cond then else]
+//    :o [result]}
+//   (result (or (and cond then)
+//               (and (not cond) else))))

@@ -1,4 +1,4 @@
-;; Machina v0.1 - An interactive, lispy HDL.
+;; Gait v0.1 - An interactive, lispy HDL.
 ;; Inspired by: Clojure, Arc, Bel, Smalltalk, SystemVerilog, Bass.
 ;;
 ;; File ext: gt
@@ -106,7 +106,7 @@ case
 ;; def vs. new vs. inst
 
 
-;; Currently Machina supports both structural and behavioural design.
+;; Currently Gait supports both structural and behavioural design.
 ;; This is a side-effect of it's high-level abstraction concepts.
 
 
@@ -295,7 +295,7 @@ b:01010101
 (mod full-adder
   {:i [a b c-in]
    :o [s c-out]
-   :v {c-out c-in}}  ; Tells Machina how to connect multiples of this for vectors.  (v / vec / c / con)
+   :v {c-out c-in}}  ; Tells Gait how to connect multiples of this for vectors.  (v / vec / c / con)
   (bind [{:s s1 :c c1} (half-adder a b)
          {:s s2 :c c2} (half-adder s1 c-in)]
     (s s2)
@@ -306,8 +306,8 @@ b:01010101
 (full-adder 0x1 0x3)
 ;; => {:s 0x1, c-out true}
 
-(full-adder {:a 0x1, :b 0x3, :mach/con 4})  ; Force to a 4-bit adder.
-;; => {:s 0x4, c-out false, :mach/result :s}
+(full-adder {:a 0x1, :b 0x3, :gait/con 4})  ; Force to a 4-bit adder.
+;; => {:s 0x4, c-out false, :gait/result :s}
 
 
 (mod + {:i [a b] :o [s]}

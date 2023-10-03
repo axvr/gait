@@ -1,4 +1,4 @@
-;; Machina.  An interactive, lispy HDL.
+;; Gait  An interactive, lispy HDL.
 ;; Inspired by: Clojure, Arc, Bel, Smalltalk, Verilog.
 ;;
 ;; File ext: gt
