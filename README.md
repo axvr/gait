@@ -4,12 +4,13 @@ An experimental, interactive, Lisp-based, object-oriented [hardware description 
 
 This is a **very** work-in-progress prototype.  Currently it is just a Clojure DSL for quick prototyping, which will likely change in the future.
 
-Gait is influenced by many languages including: [Clojure][], [Bel][], [Smalltalk][], and [SystemVerilog][].
+Gait is influenced by many languages including: [Clojure][], [Bel][], [Smalltalk][], [SystemVerilog][] and [Bass][].
 
 [Clojure]: https://clojure.org
 [Bel]: http://www.paulgraham.com/bel.html
 [Smalltalk]: https://en.wikipedia.org/wiki/Smalltalk
 [SystemVerilog]: https://en.wikipedia.org/wiki/SystemVerilog
+[Bass]: https://github.com/vito/bass
 
 
 ## Example
