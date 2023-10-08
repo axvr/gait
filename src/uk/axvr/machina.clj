@@ -1,59 +1,83 @@
 (ns uk.axvr.machina
-  "Machina v0.1 (prototype)  A Clojure HDL DSL."
-  (:require [clojure.string :as str])
-  (:import [java.time Duration]))
+  "Machina v0.1 (prototype)  A Clojure DSL.")
 
-;; Will likely need https://github.com/jarohen/chime to control the clock.
+(defn module
+  ([name io body]
+   (module name nil io body))
+  ([name doc io body]
+   {:name name
+    :doc  doc
+    :in   (:in io [])
+    :out  (:out io [])
+    :body body}))
 
-;; (defn ->out []
-;;   (ref nil))
+(defn instantiate
+  "Create an instance of a module."
+  [{:keys [in out] :as module}]
+  ;; TODO: initial reaction from nil inputs?
+  (let [->io #(into {} (map (fn [n] {n nil})) %)
+        outs (->io out)
+        ins  (->io in)]
+    ;; TODO: is all of this needed?
+    (assoc module
+           :out  outs
+           :prev {:in  ins
+                  :out outs})))
 
-;; (defn !clock [dur]
-;;   (Duration/parse dur))
+(comment
+  (instantiate
+   (module 'reg "A register module" '{:in [a b c] :out [o]} '((o i))))
+  )
 
-(def ^:private level->tag
-  (comp str/upper-case name))
+(defn- normalise-inputs
+  "Normalise module inputs.
 
-(defn- log* [level msg & opts]
-  (print (format "[%s] %s" (level->tag level) msg))
-  (when opts
-    (print " :: ")
-    (prn opts))
-  (newline)
-  (flush)
-  (when (= level :err)
-    (throw (ex-info msg {:mach/level level
-                         :opts       opts}))))
+     (mod foo {:in [a b] :out [c]} ...)
 
-(def log (partial log* :log))
-(def err (partial log* :err))
+     (foo true false)        ; => {:a true, :b false}
+     (foo :b false :a true)  ; => {:a true, :b false}"
+  [module inputs]
+  ;; TODO: add validation.
+  (into {}
+        (if (keyword? (first inputs))
+          (partition 2 inputs)
+          (map vector (:in module) inputs))))
 
-(defn module? [x]
-  (map? x))
+(comment
+  (normalise-inputs
+   (module 'reg "A register module" '{:in [a b c] :out [o]} '((o i)))
+   '(:a true :c false :b true))
 
-(def ^:dynamic *mach-ns*
-  "Machina current namespace."
-  nil)
+  (normalise-inputs
+   (module 'reg "A register module" '{:in [a b c] :out [o]} '((o i)))
+   '(true false true))
 
-(defn module [name doc io body]
-  {:mach.mod/name name
-   :mach.mod/doc  doc
-   :mach.mod/in   (:in io)
-   :mach.mod/out  (:out io)
-   :mach.mod/con  (:con io)
-   :mach.mod/src  (list 'mod name doc io body)
-   :mach.mod/ns   *mach-ns*
-   :mach.mod/deps ()})
+  (normalise-inputs
+   (module 'reg "A register module" '{:in [a b c] :out [o]} '((o i)))
+   '(true false))
+  )
 
-(defn nand [a b]
-  ;;(module? a)
-  (not (and a b)))
+(defn react
+  "Refresh a module from new inputs.
 
-(def init-env
-  {:prims {'nand #'nand
-           'log  #'log
-           'err  #'err}
-   :mods {}})
+   Module + inputs => next module state."
+  [module inputs]
+  (let [prev-inputs (get-in module [:prev :in])]
+    (if (= prev-inputs inputs)
+      module
+      (let [{:keys [body in]} module]
+        ))))
+
+(comment
+  (let [module (module 'reg "A register module" '{:in [a b c] :out [o]} '((o i)))]
+    (react
+     module
+     (normalise-inputs
+      module
+      '(:a true :c false :b true))))
+  )
+
+;; (send my-module react)
 
 (defn eval-mach [env mach-code]
   (let [[op & params] mach-code]
@@ -62,17 +86,49 @@
 
 (comment
   (eval-mach
-   init-env
+   {}
    '(log "something happened" 1 2 3))
 
   (eval-mach
-   init-env
+   {}
    '(err "something unexpected" 1 2 3))
 
   (eval-mach
-   init-env
+   {}
    '(nand false true))
 
+  ;; TODO: get nested forms to evaluate.
+  ;; Need modules first as this will happen during module react.
   (eval-mach
-   init-env
-   '(nand true (nand true true))))
+   {}
+   '(nand true (nand true true)))
+
+  (eval-mach
+   {}
+   '(mod reg
+      "A register module"
+      {:in [i] :out [o]}
+      (o i)))
+
+  (module 'reg "A register module" '{:in [i] :out [o]} '((o i)))
+  )
+
+
+;; {:colls {'coll {'sym ...}}
+;;  :prims {'mod  ...
+;;          'nand ...
+;;          'log  ...
+;;          'err  ...}}
+
+;; (defn react
+;;   "Given a module instance, react to new inputs and return the new
+;;   state.  Recursive and lazily evaluates module inputs."
+;;   [mod-inst inputs]
+;;   (let [prev-inputs ...]
+;;     (if (= prev-inputs inputs)
+;;       mod-inst
+;;       ())))
+
+
+;; (defprotocol React
+;;   (react [this]))
