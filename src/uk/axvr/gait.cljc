@@ -22,6 +22,8 @@
                syms)
      ~@body))
 
+(defrecord Module [in out mods cons])
+
 (def network
   "Initial example network.  This is complicated, but not intended to be
   written by hand."
@@ -29,37 +31,41 @@
                  not_a not_q
                  and_a and_b and_q
                  or_a or_b or_q]
-    {:colls {:uk.axvr.gait {:mods {:nand {:in  {nand_a "a", nand_b "b"}
-                                          :out {nand_q "q"}}
+    {:colls {:uk.axvr.gait {:mods {:nand (map->Module
+                                          {:in  {nand_a "a", nand_b "b"}
+                                           :out {nand_q "q"}})
                                    :not  (with-genkeys [nand_1]
-                                           {:in   {not_a "a"}
-                                            :out  {not_q "q"}
-                                            :mods {nand_1 [:uk.axvr.gait :nand]}
-                                            :cons {not_q [[nand_1 nand_a]
-                                                          [nand_1 nand_b]]
-                                                   [nand_1 nand_q] [not_q]}})
+                                           (map->Module
+                                            {:in   {not_a "a"}
+                                             :out  {not_q "q"}
+                                             :mods {nand_1 [:uk.axvr.gait :nand]}
+                                             :cons {not_q [[nand_1 nand_a]
+                                                           [nand_1 nand_b]]
+                                                    [nand_1 nand_q] [not_q]}}))
                                    :and  (with-genkeys [nand_1 not_1]
-                                           {:in   {and_a "a", and_b "b"}
-                                            :out  {and_q "q"}
-                                            :mods {nand_1 [:uk.axvr.gait :nand]
-                                                   not_1  [:uk.axvr.gait :not]}
-                                            :cons {and_a [[nand_1 nand_a]]
-                                                   and_b [[nand_1 nand_b]]
-                                                   [nand_1 nand_q] [[not_1 not_a]]
-                                                   [not_1 not_q] [and_q]}})
+                                           (map->Module
+                                            {:in   {and_a "a", and_b "b"}
+                                             :out  {and_q "q"}
+                                             :mods {nand_1 [:uk.axvr.gait :nand]
+                                                    not_1  [:uk.axvr.gait :not]}
+                                             :cons {and_a [[nand_1 nand_a]]
+                                                    and_b [[nand_1 nand_b]]
+                                                    [nand_1 nand_q] [[not_1 not_a]]
+                                                    [not_1 not_q] [and_q]}}))
                                    :or   (with-genkeys [not_1 not_2 nand_1]
-                                           {:in   {or_a "a", or_b "b"}
-                                            :out  {or_q "q"}
-                                            :mods {not_1  [:uk.axvr.gait :not]
-                                                   not_2  [:uk.axvr.gait :not]
-                                                   nand_1 [:uk.axvr.gait :nand]}
-                                            :cons {or_a [[not_1 not_a]]
-                                                   or_b [[not_2 not_a]]
-                                                   [not_1 not_q] [nand_1 nand_a]
-                                                   [not_2 not_q] [nand_1 nand_b]
-                                                   [nand_1 nand_q] or_q}})}}}}))
+                                           (map->Module
+                                            {:in   {or_a "a", or_b "b"}
+                                             :out  {or_q "q"}
+                                             :mods {not_1  [:uk.axvr.gait :not]
+                                                    not_2  [:uk.axvr.gait :not]
+                                                    nand_1 [:uk.axvr.gait :nand]}
+                                             :cons {or_a [[not_1 not_a]]
+                                                    or_b [[not_2 not_a]]
+                                                    [not_1 not_q] [nand_1 nand_a]
+                                                    [not_2 not_q] [nand_1 nand_b]
+                                                    [nand_1 nand_q] or_q}}))}}}}))
 
-;; (get-in network [:colls :uk.axvr.gait :mods :not])
+(get-in network [:colls :uk.axvr.gait :mods :not])
 
 (comment
 
