@@ -82,15 +82,16 @@ The file extension for Gait code is `.gt`.
 
 ## Road map
 
-- [ ] Initial language reference
-- [ ] Initial simulator
-- [ ] Collections (namespaces)
-- [ ] Standard library
+- [ ] Initial simulator + language (machine API)
+- [ ] Initial language? (text API for text editors)
+- [ ] Module collections (namespaces)
+- [ ] Simulator server (for IDEs, use RSocket over WebSockets + CBOR)
 - [ ] Libraries (+ package management?)
+- [ ] IDE (C# Godot?)
+- [ ] Standard library
 - [ ] Optimiser
 - [ ] Netlist generation
 - [ ] Load onto an FPGA
-- [ ] IDE
 
 
 ### Out of scope
