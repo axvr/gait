@@ -4,15 +4,11 @@
 ;; Thunks, Modules, Instances, Networks.
 
 ;; Should input evaluation order matter?  Probably not.  Assume the simulator
-;; will and can perform evaluation however it likes.
+;; will and can perform evaluation however it likes even concurrently.
 
 ;; == Thunks ==
 ;;
 ;; Thunk evaluations should be cached!  Use delay?
-;;
-;; Implement clojure.lang.IFn on thunks?
-;;   - probably not because I want the simulator to have more
-;;     control.
 
 ;; NOTE: Temporary thunk evaluation.
 (defn thunk-eval [thunk]
@@ -20,28 +16,23 @@
 
 ;; == Primitive modules ==
 
-;;  A  B | O
-;; ------|---
-;;  T  T | F
-;;  T  F | T
-;;  F  F | T
-;;  F  T | T
 (def !nand
   "Core primitive NAND module."
-  {:in   '[a & bs]
+  {:name 'nand
+   :in   '[a & bs]
    :out  '[o]
    :eval (fn [ins]
            (loop [[in & ins] (vals ins)]
              (cond
-               (false? (thunk-eval in)) {:o true}
-               (empty? ins)             {:o false}
+               (false? (thunk-eval in)) {'o true}
+               (empty? ins)             {'o false}
                :else                    (recur ins))))})
 
 (comment
   (let [a (delay true)
         b (delay true)]
-    ((:eval !nand)
-     {:a a, :b b}))
+    @(delay ((:eval !nand)
+             {'a a, 'b b})))
   )
 
 ;; (defn bare-net []
@@ -49,6 +40,11 @@
 
 ;; TODO: module instances are only required when they are impure.
 ;;   Instances can be implemented purely by extending a module with hidden IO.
+;;
+;;     (def !stateful-mod
+;;       {:in       '[a & bs]
+;;        :state-in '[s#]
+;;        :out      '[o so#]})
 
 ;; Plan:
 ;;   - Compile into a network/graph.
