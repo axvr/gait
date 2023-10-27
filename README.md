@@ -19,10 +19,10 @@ Influenced by many languages and systems including: [Clojure][], [Bel][], [Small
 ## Road map
 
 - [ ] Initial simulator (machine API)
-- [ ] Module collections (namespaces)
-- [ ] Simulator server (for IDEs, use RSocket over WebSockets + CBOR)
-- [ ] Libraries (+ package management?)
-- [ ] IDE (C# Godot?)
+- [ ] Module collections (i.e. namespaces)
+- [ ] Simulator server (message passing with RSocket over WebSockets + CBOR?)
+- [ ] External libraries (+ package management?)
+- [ ] IDE (C# Godot?  Something else?)
 - [ ] Standard library
 - [ ] Optimiser
 - [ ] Netlist generation
@@ -31,9 +31,12 @@ Influenced by many languages and systems including: [Clojure][], [Bel][], [Small
 
 ### Out of scope
 
-- Compile to Verilog, SystemVerilog or VHDL.  (Use Clash instead.)
+- Compile to Verilog, SystemVerilog or VHDL.  (Use [Clash][] instead.)
+- Textual interface/language.
 - Backwards compatibility with other systems and tools.
 - Support for a wide range of FPGAs.
+
+[Clash]: https://clash-lang.org
 
 
 ## Legal
